@@ -104,12 +104,99 @@ instacart %>%
   pivot_wider(
     names_from = order_dow,
     values_from = mean_hod
-  )
-
+  ) %>%
+knitr::kable()
 
 
 ```
 
+
+# Problem 2
+
+First, we can upload our **BRFSS** data using the *p8105.datasets* code provided on the website.
+
+```{r}
+
+library(p8105.datasets)
+data("brfss_smart2010")
+
+```
+
+
+Next, we should do some data cleaning to ensure that the data have appropriate variable names,
+focus on the topic at hand, include only excellent to poor responses, and organize the responses
+as a factor taking levels ordered from poor to excellent
+
+```{r}
+
+brfss = brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  filter(topic == "Overall Health", response %in% c("Poor", "Fair", "Good", "Very good", "Excellent")) %>%
+  mutate(
+    response = factor(response, ordered = TRUE, levels = c("Poor", "Fair", "Good", "Very good", "Excellent")))
+  
+```
+
+Now, we can find some answers:
+
+```{r}
+
+locations_2002 = brfss %>%
+  filter(year == 2002) %>%
+  group_by(locationabbr) %>%
+  summarize(
+    number_of_locations = n_distinct(locationdesc)
+  ) %>%
+  filter(number_of_locations > 6)
+
+view(locations_2002)
+
+```
+
+There were `r length(pull(locations_2002, number_of_locations))` states that had 7 or more observations in 2002. They included `r unique(pull(locations_2002, locationabbr))`
+
+```{r}
+
+locations_2010 = brfss %>%
+  filter(year == 2010) %>%
+  group_by(locationabbr) %>%
+  summarize(
+    number_of_locations = n_distinct(locationdesc)
+  ) %>%
+  filter(number_of_locations > 6)
+
+```
+
+There were `r length(pull(locations_2010, number_of_locations))` states that had 7 or more observations in 2010. They included `r unique(pull(locations_2010, locationabbr))`
+
+\
+
+
+```{r}
+
+excellent_brfss = brfss %>%
+  filter(response == "Excellent") %>%
+  group_by(year, locationabbr) %>%
+  summarize(mean_state_data = mean(data_value, na.rm = TRUE))
+
+
+```
+
+Now, we can create a _spaghetti plot_ using our new **excellent_brfss** dataset.
+
+```{r}
+
+ggplot(data = excellent_brfss, aes(x = year, y = mean_state_data, color = locationabbr, group = locationabbr)) + geom_line()
+
+
+```
+
+
+```{r}
+
+ggplot(subset(brfss, year %in% c(2006, 2010)), aes(x = response, y = data_value, fill = response)) + geom_bar(stat = "identity", position = "dodge") + facet_grid(. ~ year)
+  
+```
 
 
 
