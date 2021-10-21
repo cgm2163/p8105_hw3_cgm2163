@@ -1,8 +1,8 @@
 
 ---
-title: "Simple document"
+title: "Homework 3"
 author: "Catherine Mauro"
-date: '`r format(Sys.time(), "%Y-%m-%d")`'
+due date: 10/20/2021
 output: github_document
 ---
 
@@ -17,7 +17,7 @@ library(tidyverse)
 
 ```
 
-Next, we can upload our **Instacart** data using the *p8105.datasets* code provided on the website.
+Problem 1 deals with **Instacart** data from the *p8105.datasets* code provided on the website, which we can now upload.
 
 ```{r}
 
@@ -35,7 +35,40 @@ The variables include `r colnames(instacart)`. Columns like order, product, and 
 data.
 
 
-Nest, we can write some code to find more about our **instacart** data.
+```{r}
+
+instacart %>%
+  group_by(department, aisle) %>%
+  count(aisle) %>%
+  ggplot(aes(x = department, y = n)) + geom_point() + theme(axis.text.x = element_text
+  (angle = 90)) +
+  labs(
+    title = "aisles by department",
+    x = "department name",
+    y = "Number of aisles",
+    caption = "data from p8105.datasets"
+  )
+
+```
+
+We can see from this chart that the _produce_ and _dairy/eggs_ departments have the most aisles of any other department.
+
+```{r}
+
+instacart %>%
+  group_by(department) %>%
+  count(product_name) %>%
+  mutate(product_rank_in_dept = min_rank(desc(n))) %>%
+  filter(product_rank_in_dept == 1) %>%
+  arrange(department, product_rank_in_dept) %>%
+  knitr::kable()
+
+```
+
+We can also see from this the top products in each department.
+
+
+Next, we can write some code to find more about our **instacart** data.
 
 ```{r}
 
@@ -53,7 +86,6 @@ _yoghurt_, and _packaged cheese_, all which have more than **41,000** observatio
 
 Next, we can make a plot to show the number of items ordered in each aisle for
 those aisles with more than **10,000** observations.
-
 
 ```{r}
 
@@ -75,9 +107,11 @@ instacart %>%
 ```
 
 
-After arranging a graph for all of the aisles with over 10000 items ordered,
-we can make a table further exploring popular items for _baking ingredients_,
+After arranging a graph for all of the aisles with over 10000 items ordered, we can see that _fresh fruits_ and _fresh vegetables_ are the aisles with clearly the most items ordered.
+
+We can make a table further exploring popular items for _baking ingredients_,
  _dog food care_, _packaged vegetables fruits_.
+ 
 
 ```{r}
 
@@ -91,9 +125,10 @@ instacart %>%
   knitr::kable()
 ```
 
-Finally for this data set, we can create a 2x7 table tracking the mean hour of day at which certain apples
-and ice creams are ordered each day of the week.
+For **baking ingredients**, the three most common products ordered are _light brown sugar, pure baking soda, and cane sugar_. For **dog food care**, the three most common products ordered are _snack sticks, organix chicken, and small dog biscuits_. Finally, for **packaged vegetables fruits**, the three most common products ordered are _organic baby spinach, organic raspberries, and organic blueberries._
 
+
+We can also create a 2x7 table tracking the mean hour of day at which certain apples and ice creams are ordered each day of the week.
 
 ```{r}
 
@@ -110,8 +145,12 @@ knitr::kable()
 
 ```
 
+We can see that, in this case, ice cream is bought earlier in the day when it is later in the week, while apples vary day to day but are generally bought earlier in the day than ice cream.
+
 
 # Problem 2
+
+Problem 2 deals with BRFSS data that 
 
 First, we can upload our **BRFSS** data using the *p8105.datasets* code provided on the website.
 
@@ -123,9 +162,7 @@ data("brfss_smart2010")
 ```
 
 
-Next, we should do some data cleaning to ensure that the data have appropriate variable names,
-focus on the topic at hand, include only excellent to poor responses, and organize the responses
-as a factor taking levels ordered from poor to excellent
+Next, we should do some data cleaning to ensure that the data have appropriate variable names,focus on the topic at hand, include only excellent to poor responses, and organize the responses as a factor taking levels ordered from poor to excellent
 
 ```{r}
 
@@ -137,7 +174,11 @@ brfss = brfss_smart2010 %>%
   
 ```
 
-Now, we can find some answers:
+After loading the set, we can observe some details regarding the data:
+
+There are `r nrow(brfss)` rows and `r ncol(brfss)` columns in **brfss**.
+
+Now, we can find some answers in our data set:
 
 ```{r}
 
@@ -169,8 +210,8 @@ locations_2010 = brfss %>%
 
 There were `r length(pull(locations_2010, number_of_locations))` states that had 7 or more observations in 2010. They included `r unique(pull(locations_2010, locationabbr))`
 
-\
 
+Now, we can limit our analysis to just those who responded "Excellent", averaging data_value across state locations.
 
 ```{r}
 
@@ -188,21 +229,105 @@ Now, we can create a _spaghetti plot_ using our new **excellent_brfss** dataset.
 
 ggplot(data = excellent_brfss, aes(x = year, y = mean_state_data, color = locationabbr, group = locationabbr)) + geom_line()
 
-
 ```
+
+This spaghetti plot shows the mean data values from each state over the years measured in the study.
+
+We can also create a two-panel plot comparing 2006 and 2010 assessing distribution of _data_value_ across response types in **NYS**.
 
 
 ```{r}
 
-ggplot(subset(brfss, year %in% c(2006, 2010)), aes(x = response, y = data_value, fill = response)) + geom_bar(stat = "identity", position = "dodge") + facet_grid(. ~ year)
-  
+ggplot(subset(brfss, year %in% c(2006, 2010, locationabbr == "NY")), aes(x = response, y = data_value, fill = response)) + geom_bar(stat = "identity", position = "dodge") + facet_grid(. ~ year) + theme(axis.text.x = element_text
+  (angle = 90)) + labs(
+    title = "2006 vs. 2010 plots",
+    x = "response type",
+    y = "data_value",
+    caption = "data from p8105.datasets"
+  )
+
+```
+
+We can now see that the distributions of _data_value_ among _response_ in both **2006** and **2010** are quite similar, with "very good" having the highest bar in both years.
+
+
+
+# Problem 3
+
+Problem 3 deals with accelerometer data from the **accel_data.csv**, which we can clean, wrangle, and tidy.
+
+```{r}
+
+
+accel =
+  read.csv("./accel_data.csv") %>%
+  rename(day_num = day_id) %>%
+  janitor::clean_names() %>%
+  mutate(
+     week_section = ifelse(day == "Saturday" | day == "Sunday", "weekend", no = "weekday")) %>%
+   mutate(
+    day = factor(day, ordered = TRUE, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))
+```
+
+However, we can make this look even better by using a _pivot_longer_ function.
+
+```{r}
+
+accel_long = accel %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minute",
+    values_to = "activity_count") %>%
+  mutate(
+    minute = factor(minute)
+  )
+
 ```
 
 
+The **accel_long** set contains data from the accelerometer of a 65 year old man collected over 35 days (5 weeks). There are `r nrow(accel_long)` rows and `r ncol(accel_long)` columns in **accel_long**. Column names include `r colnames(accel_long)`.
+
+```{r}
 
 
+accel_data_sum = accel_long %>%
+  group_by(day_num, day, week_section) %>%
+  summarize(
+    daily_activity_total = sum(activity_count)) 
+
+knitr::kable(accel_data_sum)
+
+```
+
+Just from our table output, it seems like our patient is much more active on certain days, but we can create a chart to observe this.
+
+```{r}
+
+accel_data_sum %>%
+  group_by(day) %>%
+  ggplot(aes(x = day, y = daily_activity_total, fill = day)) + geom_bar(stat = "identity", position = "dodge") + labs(
+    title = "daily activity graph",
+    x = "day of the week",
+    y = "daily accelerometer activity",
+    caption = "data from p8105.datasets"
+  )
+
+```
 
 
+From our bar graph, we can tell that the patient's most active days are Sunday and Monday, followed by a sharp drop off in the following few days, before returning to high activity by the start of the weekend.
 
 
+```{r}
+accel_long %>%
+  group_by(day_num) %>%
+  ggplot(aes(x = minute, y = activity_count, color = day)) + geom_line(aes(color = day)) + geom_smooth(se = FALSE)
+  
+
+```
+
+
+There are no really observable trends, but it appears that Saturday, Sunday, and Monday are still the days with the highest amounts of activity per day.
+
+**End of HW3**
 
